@@ -472,7 +472,6 @@ export default function ReadLog() {
                     >
                       <span className="mb-1 w-30 shrink-0 px-2 rounded">
                         [{log.timestamp}]
-
                       </span>
                       {preview ? (
                         <span className="text-gray-500 text-xs">
