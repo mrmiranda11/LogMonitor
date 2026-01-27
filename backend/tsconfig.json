@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src",               // Carpeta donde están tus archivos fuente (.ts)
+    "outDir": "./dist",               // Carpeta donde se generarán los archivos compilados (.js)
+    "target": "ES2020",               // Versión de JavaScript que se generará
+    "module": "commonjs",             // Sistema de módulos usado (ideal para Node.js)
+    "lib": ["ES2020"],                // Bibliotecas estándar disponibles
+    "types": ["node"],                // Tipos incluidos (Node.js en este caso)
+    "strict": true,                   // Activa todas las comprobaciones estrictas de TypeScript
+    "esModuleInterop": true,         // Permite importar módulos CommonJS como si fueran ESModules
+    "skipLibCheck": true             // Omite verificación de tipos en archivos de definición de librerías
+  },
+  "include": ["src"],                 // Archivos que se deben compilar
+  "exclude": ["node_modules", "dist"]// Archivos que se deben ignorar
+}
