@@ -32,8 +32,9 @@ export class MonitorController {
 
     readLog = async (req: Request, res: Response) => {
         const inicio = process.hrtime();
-        const { inputBusqueda, selecTemplate, selecTemplateText, opcionesConsulta, radioAmbiente } = req.body;
-        console.log(inputBusqueda, selecTemplate, opcionesConsulta, radioAmbiente);
+        const { inputBusqueda,inputBuffer, selecTemplate, selecTemplateText, opcionesConsulta, radioAmbiente } = req.body;
+        console.log(inputBusqueda, inputBuffer, selecTemplate, opcionesConsulta, radioAmbiente);
+        const bufferFile = (selecTemplate === '1' || selecTemplate === '5') ? '1' : inputBuffer;
         res.writeHead(200, {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
@@ -42,11 +43,9 @@ export class MonitorController {
 
         const dirServer = "" + process.env['dir.path.server'] + radioAmbiente;
         const archivos = await leerDirectorios(dirServer);
-
-        
         const regexTemplate2 = new RegExp(`${selecTemplateText}.*<IdConsultado>(${opcionesConsulta})</IdConsultado>`);
         const regexTemplate3 = new RegExp(`${selecTemplateText}.*<template2`);
-
+        let buffer: string[] = [];
         for (const element of archivos) {
             const fileName = element.split("\\LogsDecisor\\")[1]; 
             res.write(`data: ${JSON.stringify({ type: 'server', message: fileName })}\n\n`);
@@ -58,42 +57,43 @@ export class MonitorController {
             fileStream.on('error', err => {
                 res.write(`data: ${JSON.stringify({ type: 'error', message: err.message })}\n\n`);
             });
-
-            let buffer: String[] = [];
+            let isMatch = false;
             for await (const linea of rl) {
+                
                 switch (selecTemplate) {
                     case "1":
-                        if(opcionesConsulta.includes("1231321")){
-                            res.write(`data: ${JSON.stringify({ type: 'progress', message: linea })}\n\n`);
+                        if(linea.includes(opcionesConsulta)){
+                            //res.write(`data: ${JSON.stringify({ type: 'progress', message: linea })}\n\n`);
+                            isMatch = true;
+                            buffer.push(`data: ${JSON.stringify({ type: "progress", message: linea })}\n\n`);
+                        }else{
+                            if(isMatch){
+                                buffer.push(`data: ${JSON.stringify({ type: "progress", message: linea })}\n\n`);
+                            }
                         }
                         break;
                     case "2":
                         if (regexTemplate2.test(linea)) {
-                            res.write(`data: ${JSON.stringify({ type: 'progress', message: linea })}\n\n`);
+                            isMatch = true;
+                            //res.write(`data: ${JSON.stringify({ type: 'progress', message: linea })}\n\n`);
+                            buffer.push(`data: ${JSON.stringify({ type: "progress", message: linea })}\n\n`);
                         }
                         break;
                     case "2":
                         if (regexTemplate3.test(linea)) {
+                            isMatch = true;
                             res.write(`data: ${JSON.stringify({ type: 'progress', message: linea })}\n\n`);
                         }
                         break;
                     default:
                         break;
                 }
-                /*if (selecTemplate === '2') {
-                    if (regexTemplate2.test(linea)) {
-                        res.write(`data: ${JSON.stringify({ type: 'progress', message: linea })}\n\n`);
-                    }
-                } else if (selecTemplate === '3') {
-                    if (regexTemplate3.test(linea)) {
-                        res.write(`data: ${JSON.stringify({ type: 'progress', message: linea })}\n\n`);
-                    }
-                }*/
-                if (buffer.length > 100) { 
+              
+                if (isMatch && buffer.length > bufferFile) { 
                     res.write(buffer.join("")); // enviar bloque acumulado buffer = []; // limpiar 
+                    buffer = [];
+                    isMatch=false;
                 }
-
-                
             }
             if (buffer.length > 0) { 
                 res.write(buffer.join("")); // enviar bloque acumulado buffer = []; // limpiar 
@@ -101,35 +101,7 @@ export class MonitorController {
             
         };
 
-        /*for (const element of archivos) {
-            res.write(`data: ${JSON.stringify({ type: 'server', message: element })}\n\n`);
-
-            const fileStream = fs.createReadStream(element, { encoding: "utf8" });
-            const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
-
-            fileStream.on('error', err => {
-                res.write(`data: ${JSON.stringify({ type: 'error', message: err.message })}\n\n`);
-            });
-            
-            for await (const linea of rl) {
-                for (const idConsultado of opcionesConsulta) {
-                    if (selecTemplate === '1') {
-                        if (linea.includes(selecTemplateText) &&
-                            linea.includes(`<IdConsultado>${idConsultado}</IdConsultado>`)) {
-                                res.write(`data: ${JSON.stringify({ type: 'progress', message: linea })}\n\n`);
-                        }
-                    }
-
-                    if (selecTemplate === '2') {
-                        if (linea.includes(selecTemplateText) &&
-                            linea.includes('[executeEngine] Respuesta:') &&
-                            linea.includes('error="true"')) {
-                            res.write(`data: ${JSON.stringify({ type: 'progress', message: linea })}\n\n`);
-                        }
-                    }
-                }
-            }
-        }*/
+        
 
         const fin = process.hrtime(inicio);
         const segundos = fin[0] + fin[1] / 1e9;
