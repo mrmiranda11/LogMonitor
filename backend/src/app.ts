@@ -3,7 +3,7 @@ import MonitorRoutes from './routes/MonitorRoutes';
 import cors from 'cors';
 
 const allowedOrigins=[
-    'http://localhost:5174'
+    'http://localhost:4000',
 ];
 const app = express();
 
@@ -14,7 +14,7 @@ app.use(cors({origin:allowedOrigins,credentials: true}));
 app.use('/',MonitorRoutes);
 
 
-const PORT = 3001;
+const PORT = 3002;
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });

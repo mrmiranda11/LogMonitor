@@ -34,7 +34,7 @@ export class MonitorController {
         const inicio = process.hrtime();
         const { inputBusqueda,inputBuffer, selecTemplate, selecTemplateText, opcionesConsulta, radioAmbiente } = req.body;
         console.log(inputBusqueda, inputBuffer, selecTemplate, opcionesConsulta, radioAmbiente);
-        const bufferFile = (selecTemplate === '1' || selecTemplate === '5') ? '1' : inputBuffer;
+        const bufferFile = (selecTemplate != '1' && selecTemplate != '5') ? '1' : inputBuffer;
         res.writeHead(200, {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
@@ -79,7 +79,7 @@ export class MonitorController {
                             buffer.push(`data: ${JSON.stringify({ type: "progress", message: linea })}\n\n`);
                         }
                         break;
-                    case "2":
+                    case "3":
                         if (regexTemplate3.test(linea)) {
                             isMatch = true;
                             res.write(`data: ${JSON.stringify({ type: 'progress', message: linea })}\n\n`);

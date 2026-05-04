@@ -3,7 +3,7 @@ import { Search, Play, ExternalLink, Trash2, Download } from 'lucide-react';
 import { saveAs } from "file-saver";
 
 
-const URL_API = "http://localhost:3001/";
+const URL_API = "http://localhost:3002/";
 
 interface Errors { inputBusqueda?: string; inputBuffer?: string; selecTemplate?: string; selectedOption?: string }
 
